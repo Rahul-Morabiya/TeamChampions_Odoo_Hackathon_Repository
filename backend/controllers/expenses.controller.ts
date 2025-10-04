@@ -28,14 +28,16 @@ export const getMyExpenses = async (req: Request, res: Response) => {
 // Create a new expense
 export const createExpense = async (req: Request, res: Response) => {
   try {
-    const { title, amount } = req.body;
+    const { amount, category, date, description } = req.body;
     const userId = (req as any).user?.id;
-    if (!title || !amount || !userId) {
+    if (!amount || !category || !date || !userId) {
       return res.status(400).json({ message: 'Missing fields.' });
     }
     const expense = new Expense({
-      title,
       amount,
+      category,
+      date,
+      description,
       status: 'pending',
       userId,
       createdAt: new Date(),

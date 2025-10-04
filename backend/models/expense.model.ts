@@ -1,16 +1,20 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IExpense extends Document {
-  title: string;
   amount: number;
-  status: "pending" | "approved" | "rejected";
+  category: string;
+  date: string;
+  description: string;
+  status: string;
   userId: mongoose.Types.ObjectId;
   createdAt: Date;
 }
 
 const ExpenseSchema: Schema = new Schema({
-  title: { type: String, required: true },
   amount: { type: Number, required: true },
+  category: { type: String, required: true },
+  date: { type: String, required: true },
+  description: { type: String },
   status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   createdAt: { type: Date, default: Date.now },
