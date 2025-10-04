@@ -19,6 +19,7 @@ export const signup = async (req: Request, res: Response) => {
     const user = new User({ name, email, password: hashed, role });
     await user.save();
     res.status(201).json({ message: "Signup successful" });
+    console.log(user);
   } catch (err) {
     if (err instanceof Error) {
       res.status(400).json({ message: err.message });
