@@ -5,8 +5,13 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 export default function ApproverDashboard() {
   const [expenses, setExpenses] = useState([]);
   const [error, setError] = useState("");
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
+    fetchExpenses();
+  }, []);
+
+  const fetchExpenses = () => {
     const token = localStorage.getItem("token");
     fetch("http://localhost:3001/expenses?status=pending", {
       headers: { Authorization: `Bearer ${token}` },
@@ -14,7 +19,29 @@ export default function ApproverDashboard() {
       .then((res) => res.json())
       .then((data) => setExpenses(data))
       .catch(() => setError("Failed to load expenses"));
-  }, []);
+  };
+
+  const handleDecision = async (id: string, status: "approved" | "rejected") => {
+    setLoadingId(id);
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`http://localhost:3001/expenses/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
+      // Refresh expenses
+      fetchExpenses();
+    } catch (err) {
+      setError("Failed to update expense status");
+    } finally {
+      setLoadingId(null);
+    }
+  };
 
   return (
     <DashboardLayout title="Pending Expenses">
@@ -29,8 +56,8 @@ export default function ApproverDashboard() {
                 <th className="py-2 px-3">Category</th>
                 <th className="py-2 px-3">Date</th>
                 <th className="py-2 px-3">Description</th>
-                <th className="py-2 px-3">Status</th>
                 <th className="py-2 px-3">User</th>
+                <th className="py-2 px-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -40,8 +67,23 @@ export default function ApproverDashboard() {
                   <td className="py-2 px-3">{exp.category}</td>
                   <td className="py-2 px-3">{exp.date ? new Date(exp.date).toLocaleDateString() : ""}</td>
                   <td className="py-2 px-3">{exp.description}</td>
-                  <td className="py-2 px-3">{exp.status}</td>
                   <td className="py-2 px-3">{exp.userId?.name}</td>
+                  <td className="py-2 px-3">
+                    <button
+                      className="px-3 py-1 bg-green-600 text-white rounded mr-2"
+                      disabled={loadingId === exp._id}
+                      onClick={() => handleDecision(exp._id, "approved")}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      className="px-3 py-1 bg-red-600 text-white rounded"
+                      disabled={loadingId === exp._id}
+                      onClick={() => handleDecision(exp._id, "rejected")}
+                    >
+                      Reject
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
