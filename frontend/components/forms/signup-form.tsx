@@ -16,7 +16,7 @@ export default function SignupForm() {
     e.preventDefault();
     setError("");
     try {
-      const res = await fetch("/signup", {
+      const res = await fetch("http://localhost:3001/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
