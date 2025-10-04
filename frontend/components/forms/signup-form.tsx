@@ -1,98 +1,102 @@
-"use client"
+"use client";
+import { useState } from "react";
+import { apiFetch } from "@/lib/fetcher";
+import { useRouter } from "next/navigation";
 
-import type React from "react"
+export default function SignupForm() {
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "employee" });
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-import { useMemo, useState } from "react"
-import useSWR from "swr"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { fetcher } from "@/lib/fetcher"
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-type Country = { name: string; currency: string; code: string }
-
-export function SignupForm() {
-  const router = useRouter()
-  const { data: countries } = useSWR<Country[]>("/api/countries", fetcher)
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirm: "",
-    country: "",
-  })
-  const valid = useMemo(
-    () => form.name && form.email && form.password && form.confirm && form.password === form.confirm && form.country,
-    [form],
-  )
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    })
-    if (res.ok) {
-      router.push("/login")
-    } else {
-      alert("Signup failed")
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    try {
+      await apiFetch("/auth/signup", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+      router.push("/login");
+    } catch (err: any) {
+      setError(err.message);
     }
-  }
+  };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="grid gap-2">
-        <Label htmlFor="name">Name</Label>
-        <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+    <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in">
+      <div>
+        <label className="block mb-1 font-medium text-primary" htmlFor="name">
+          Name
+        </label>
+        <input
+          id="name"
+          name="name"
+          placeholder="Full Name"
+          value={form.name}
+          onChange={handleChange}
+          required
+          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white/80 transition"
+        />
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
+      <div>
+        <label className="block mb-1 font-medium text-primary" htmlFor="email">
+          Email
+        </label>
+        <input
           id="email"
+          name="email"
           type="email"
+          placeholder="Email"
+          autoComplete="username"
           value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          onChange={handleChange}
+          required
+          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white/80 transition"
         />
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
+      <div>
+        <label className="block mb-1 font-medium text-primary" htmlFor="password">
+          Password
+        </label>
+        <input
           id="password"
+          name="password"
           type="password"
+          placeholder="Password"
+          autoComplete="new-password"
           value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          onChange={handleChange}
+          required
+          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white/80 transition"
         />
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="confirm">Confirm Password</Label>
-        <Input
-          id="confirm"
-          type="password"
-          value={form.confirm}
-          onChange={(e) => setForm({ ...form, confirm: e.target.value })}
-        />
+      <div>
+        <label className="block mb-1 font-medium text-primary" htmlFor="role">
+          Role
+        </label>
+        <select
+          id="role"
+          name="role"
+          value={form.role}
+          onChange={handleChange}
+          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white/80 transition"
+        >
+          <option value="employee">Employee</option>
+          <option value="approver">Approver</option>
+          <option value="admin">Admin</option>
+        </select>
       </div>
-      <div className="grid gap-2">
-        <Label>Country</Label>
-        <Select onValueChange={(country) => setForm({ ...form, country })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select country" />
-          </SelectTrigger>
-          <SelectContent className="max-h-[300px]">
-            {countries?.map((c) => (
-              <SelectItem key={c.code} value={c.code}>
-                {c.name} ({c.currency})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <Button type="submit" disabled={!valid}>
-        Create Company & Admin
-      </Button>
+      {error && <div className="text-red-600 text-sm text-center animate-shake">{error}</div>}
+      <button
+        type="submit"
+        className="w-full py-2 rounded-lg bg-primary text-white font-semibold shadow-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105"
+      >
+        Sign Up
+      </button>
     </form>
-  )
+  );
 }
