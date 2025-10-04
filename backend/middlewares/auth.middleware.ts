@@ -1,7 +1,19 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+// Extend Express Request type to include 'user'
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        role: string;
+      };
+    }
+  }
+}
+
+const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
   const auth = req.headers.authorization;
@@ -17,10 +29,29 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-export const authorize = (roles: string[]) => (req: Request, res: Response, next: NextFunction) => {
-  const user = (req as any).user;
-  if (!user || !roles.includes(user.role)) {
-    return res.status(403).json({ message: 'Forbidden.' });
+// ✅ Role-based authorization helper
+export const authorize = (roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Forbidden." });
+    }
+    next();
+  };
+};
+
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "No token provided" });
   }
-  next();
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload & { id: string; role: string };
+    req.user = { id: decoded.id, role: decoded.role };
+    next();
+  } catch {
+    return res.status(401).json({ message: "Invalid token" });
+  }
 };

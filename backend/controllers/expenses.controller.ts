@@ -1,32 +1,63 @@
 import { Request, Response } from 'express';
-import { expenses } from '../models/expense.model';
+import { Expense } from '../models/expense.model';
 
-export const getExpenses = (_req: Request, res: Response) => {
-  res.json(expenses);
-};
-
-export const createExpense = (req: Request, res: Response) => {
-  const { title, amount, status, userId } = req.body;
-  if (!title || !amount || !userId) {
-    return res.status(400).json({ message: 'Missing fields.' });
+// Get all expenses (optionally filter by status)
+export const getExpenses = async (req: Request, res: Response) => {
+  try {
+    const { status } = req.query;
+    const filter: any = {};
+    if (status) filter.status = status;
+    const expenses = await Expense.find(filter).populate("userId", "name email role");
+    res.json(expenses);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch expenses" });
   }
-  const expense = {
-    id: expenses.length + 1,
-    title,
-    amount,
-    status: status || 'pending',
-    userId,
-    createdAt: new Date().toISOString(),
-  };
-  expenses.push(expense);
-  res.status(201).json(expense);
 };
 
-export const updateExpenseStatus = (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { status } = req.body;
-  const expense = expenses.find(e => e.id === Number(id));
-  if (!expense) return res.status(404).json({ message: 'Expense not found.' });
-  expense.status = status;
-  res.json(expense);
+// Get expenses for the logged-in user
+export const getMyExpenses = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    const expenses = await Expense.find({ userId });
+    res.json(expenses);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch your expenses" });
+  }
+};
+
+// Create a new expense
+export const createExpense = async (req: Request, res: Response) => {
+  try {
+    const { title, amount } = req.body;
+    const userId = (req as any).user?.id;
+    if (!title || !amount || !userId) {
+      return res.status(400).json({ message: 'Missing fields.' });
+    }
+    const expense = new Expense({
+      title,
+      amount,
+      status: 'pending',
+      userId,
+      createdAt: new Date(),
+    });
+    await expense.save();
+    res.status(201).json(expense);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to create expense" });
+  }
+};
+
+// Update expense status (for approver/admin)
+export const updateExpenseStatus = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const expense = await Expense.findById(id);
+    if (!expense) return res.status(404).json({ message: 'Expense not found.' });
+    expense.status = status;
+    await expense.save();
+    res.json(expense);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update expense status" });
+  }
 };

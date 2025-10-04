@@ -1,11 +1,17 @@
-import { Router } from 'express';
-import { getExpenses, createExpense, updateExpenseStatus } from '../controllers/expenses.controller';
-import { authenticate } from '../middlewares/auth.middleware';
+import express from "express";
+import {
+  createExpense,
+  getExpenses,
+  updateExpenseStatus,
+  getMyExpenses,
+} from "../controllers/expenses.controller";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
-const router = Router();
+const router = express.Router();
 
-router.get('/', authenticate, getExpenses);
-router.post('/', authenticate, createExpense);
-router.patch('/:id/status', authenticate, updateExpenseStatus);
+router.post("/", authMiddleware, createExpense);
+router.get("/", authMiddleware, getExpenses);
+router.get("/my", authMiddleware, getMyExpenses);
+router.patch("/:id/status", authMiddleware, updateExpenseStatus);
 
 export default router;
