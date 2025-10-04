@@ -29,7 +29,7 @@ export default function Navbar() {
         <div className="hidden md:flex gap-3">
           {!loggedIn ? (
             <>
-              <Button asChild variant="ghost">
+              <Button asChild >
                 <Link href="/login">Login</Link>
               </Button>
               <Button asChild>
