@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { apiFetch } from "@/lib/fetcher";
+// REMOVE: import { apiFetch } from "@/lib/fetcher";
 import { useRouter } from "next/navigation";
 
 export default function SignupForm() {
@@ -16,10 +16,15 @@ export default function SignupForm() {
     e.preventDefault();
     setError("");
     try {
-      await apiFetch("/auth/signup", {
+      const res = await fetch("/auth/signup", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Signup failed");
+      }
       router.push("/login");
     } catch (err: any) {
       setError(err.message);
@@ -39,7 +44,7 @@ export default function SignupForm() {
           value={form.name}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white/80 transition"
+          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-black/80 transition"
         />
       </div>
       <div>
@@ -55,7 +60,7 @@ export default function SignupForm() {
           value={form.email}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white/80 transition"
+          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-black/80 transition"
         />
       </div>
       <div>
@@ -71,7 +76,7 @@ export default function SignupForm() {
           value={form.password}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white/80 transition"
+          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-black/80 transition"
         />
       </div>
       <div>
@@ -83,7 +88,7 @@ export default function SignupForm() {
           name="role"
           value={form.role}
           onChange={handleChange}
-          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white/80 transition"
+          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-black/80 transition"
         >
           <option value="employee">Employee</option>
           <option value="approver">Approver</option>

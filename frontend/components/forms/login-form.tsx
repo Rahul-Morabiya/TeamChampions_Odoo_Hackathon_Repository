@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { apiFetch } from "@/lib/fetcher";
+// REMOVE: import { apiFetch } from "@/lib/fetcher";
 import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
@@ -16,10 +16,16 @@ export default function LoginForm() {
     e.preventDefault();
     setError("");
     try {
-      const data = await apiFetch("/auth/login", {
+      const res = await fetch("/auth/login", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Login failed");
+      }
+      const data = await res.json();
       localStorage.setItem("token", data.token);
       router.push("/dashboard");
     } catch (err: any) {
