@@ -40,7 +40,8 @@ Below are some images of the website to give you a preview of its design and fun
    ```bash
    npm start
    ```
-4. Visit `http://localhost:3000` in your browser.
+4. Visit `http://localhost:3000` in your browser for frontend.
+5. Visit `http://localhost:3001` for backend.
 
 ## 📝 Usage
 
