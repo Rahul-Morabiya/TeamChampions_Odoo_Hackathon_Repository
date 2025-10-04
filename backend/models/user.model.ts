@@ -1,18 +1,17 @@
-export interface User {
-  id: number;
+import mongoose, { Schema, Document } from "mongoose";
+
+export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
-  role: 'admin' | 'approver' | 'employee';
+  role: "admin" | "approver" | "employee";
 }
 
-export const users: User[] = [
-  // Example user for testing
-  {
-    id: 1,
-    email: 'admin@example.com',
-    password: '$2a$10$abcdefghijklmnopqrstuv', // bcrypt hash
-    name: 'Admin User',
-    role: 'admin',
-  },
-];
+const UserSchema: Schema = new Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  name: { type: String, required: true },
+  role: { type: String, enum: ["admin", "approver", "employee"], required: true },
+});
+
+export const User = mongoose.model<IUser>("User", UserSchema);
