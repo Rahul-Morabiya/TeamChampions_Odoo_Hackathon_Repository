@@ -14,4 +14,5 @@ router.get("/", authMiddleware, getExpenses);
 router.get("/my", authMiddleware, getMyExpenses);
 router.patch("/:id/status", authMiddleware, updateExpenseStatus);
 
+
 export default router;

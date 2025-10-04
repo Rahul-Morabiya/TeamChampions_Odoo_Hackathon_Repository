@@ -46,3 +46,14 @@ export const login = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const me = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    const user = await User.findById(userId).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ role: user.role, name: user.name, email: user.email });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch user info" });
+  }
+};
