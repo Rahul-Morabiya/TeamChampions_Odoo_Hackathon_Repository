@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-// REMOVE: import { apiFetch } from "@/lib/fetcher";
 import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
@@ -27,9 +26,27 @@ export default function LoginForm() {
       }
       const data = await res.json();
       localStorage.setItem("token", data.token);
-      router.push("/dashboard");
+
+      // Fetch user info using the token
+      const userRes = await fetch("http://localhost:3001/auth/me", {
+        headers: { Authorization: `Bearer ${data.token}` },
+      });
+      const userData = await userRes.json();
+
+      // Redirect based on role
+      switch (userData.role) {
+        case "admin":
+          router.push("/admin");
+          break;
+        case "approver":
+          router.push("/approver");
+          break;
+        case "employee":
+        default:
+          router.push("/employee");
+          break;
+      }
     } catch (err: any) {
-      console.log(err);
       setError(err.message);
     }
   };
